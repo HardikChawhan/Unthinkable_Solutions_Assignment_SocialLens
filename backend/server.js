@@ -33,9 +33,10 @@ const app = express();
 applySecurity(app);
 
 // ---------------------------------------------------------------------------
-// Application routes — all prefixed with /api
+// Application routes — mounted at /api and / for maximum compatibility
 // ---------------------------------------------------------------------------
 app.use('/api', routes);
+app.use('/', routes);
 
 // ---------------------------------------------------------------------------
 // 404 handler — catches any request that didn't match a route

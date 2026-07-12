@@ -51,8 +51,15 @@ function applySecurity(app) {
   // ---------------------------------------------------------------------------
   const corsOptions = {
     origin(origin, callback) {
-      // Allow non-browser tools (Postman, curl), whitelisted origins, and any local dev server
-      if (!origin || config.corsOrigin.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      const lowerOrigin = origin ? origin.toLowerCase() : '';
+      // Allow non-browser tools (Postman, curl), whitelisted origins, localhost, and any github.io deployment
+      if (
+        !origin ||
+        config.corsOrigin.includes(lowerOrigin) ||
+        lowerOrigin.startsWith('http://localhost:') ||
+        lowerOrigin.startsWith('http://127.0.0.1:') ||
+        lowerOrigin.endsWith('.github.io')
+      ) {
         return callback(null, true);
       }
       log.warn(`CORS blocked request from origin: ${origin}`);

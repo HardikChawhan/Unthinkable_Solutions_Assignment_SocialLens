@@ -17,7 +17,7 @@ const config = {
    */
   corsOrigin: (process.env.CORS_ORIGIN || 'http://localhost:5173')
     .split(',')
-    .map((origin) => origin.trim())
+    .map((origin) => origin.trim().toLowerCase())
     .filter(Boolean),
 
   /** OpenAI */
