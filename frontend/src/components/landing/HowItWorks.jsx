@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Upload, ScanText, BarChart2, ArrowRight } from 'lucide-react'
 import { staggerContainer, fadeUp } from '../../animations/variants'
@@ -136,13 +137,13 @@ function HowItWorks() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-center mt-16"
         >
-          <a
-            href="/analyzer"
+          <Link
+            to="/analyzer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-accent-indigo to-accent-violet text-white font-semibold text-sm shadow-glow hover:shadow-glow transition-all duration-200"
           >
             Try It Now — It's Free
             <ArrowRight size={16} />
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

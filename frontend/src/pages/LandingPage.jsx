@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
@@ -79,18 +80,18 @@ function LandingPage() {
                   their social media posts for maximum engagement.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a
-                    href="/analyzer"
+                  <Link
+                    to="/analyzer"
                     className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-accent-indigo to-accent-violet text-white font-semibold text-base shadow-glow hover:shadow-glow btn-glow transition-all duration-200"
                   >
                     Start Analyzing — Free
-                  </a>
-                  <a
-                    href="/about"
+                  </Link>
+                  <Link
+                    to="/about"
                     className="text-sm text-secondary hover:text-primary transition-colors"
                   >
                     Learn more →
-                  </a>
+                  </Link>
                 </div>
               </div>
             </motion.div>
