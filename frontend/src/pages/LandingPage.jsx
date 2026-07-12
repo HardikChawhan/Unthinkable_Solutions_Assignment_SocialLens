@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Github, Linkedin, Mail, Code2 } from 'lucide-react'
 import Navbar from '../components/layout/Navbar'
 import Footer from '../components/layout/Footer'
 import HeroSection from '../components/landing/HeroSection'
@@ -39,6 +40,64 @@ function LandingPage() {
         </div>
 
         <HowItWorks />
+
+        {/* Developer Spotlight Section */}
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative bg-surface2/60 border border-border/80 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-card"
+            >
+              <div className="flex items-center gap-4 text-center sm:text-left">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-indigo to-accent-violet flex items-center justify-center shrink-0 shadow-glow">
+                  <Code2 size={24} className="text-white" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-accent-indigo">
+                    Engineered &amp; Designed By
+                  </div>
+                  <h3 className="text-xl font-bold text-primary">
+                    Hardik Chawhan
+                  </h3>
+                  <p className="text-sm text-secondary mt-0.5">
+                    Full-Stack AI SaaS Application
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://github.com/HardikChawhan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-secondary hover:text-primary hover:border-accent-indigo/50 transition-all duration-200 text-sm font-medium"
+                >
+                  <Github size={16} />
+                  <span>GitHub</span>
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/hardikchawhan/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-secondary hover:text-primary hover:border-accent-indigo/50 transition-all duration-200 text-sm font-medium"
+                >
+                  <Linkedin size={16} />
+                  <span>LinkedIn</span>
+                </a>
+                <a
+                  href="mailto:hardik.chawhan20@gmail.com"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-secondary hover:text-primary hover:border-accent-indigo/50 transition-all duration-200 text-sm font-medium"
+                >
+                  <Mail size={16} />
+                  <span>Email</span>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
         {/* Bottom CTA Section */}
         <section className="py-24 px-4 sm:px-6 lg:px-8">

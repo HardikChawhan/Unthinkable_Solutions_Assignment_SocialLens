@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BarChart2, Github, Twitter, ExternalLink, Heart } from 'lucide-react'
+import { BarChart2, Github, Linkedin, Mail, ExternalLink, Heart } from 'lucide-react'
 
 const footerLinks = {
   product: [
@@ -10,7 +10,7 @@ const footerLinks = {
   technology: [
     { label: 'OCR Engine', href: 'https://tesseract.projectnaptha.com/', external: true },
     { label: 'PDF Parsing', href: 'https://pdfplumber.readthedocs.io/', external: true },
-    { label: 'Flask API', href: 'https://flask.palletsprojects.com/', external: true },
+    { label: 'Express API', href: 'https://expressjs.com/', external: true },
     { label: 'React 19', href: 'https://react.dev', external: true },
   ],
   legal: [
@@ -41,27 +41,34 @@ function Footer() {
               <span className="font-bold text-lg gradient-text">SocialLens</span>
             </div>
             <p className="text-secondary text-sm leading-relaxed max-w-xs">
-              AI-powered social media content analyzer. Upload any image or PDF
-              and get instant engagement insights and improvement suggestions.
+              AI-powered social media content analyzer. Developed by{' '}
+              <span className="text-primary font-semibold">Hardik Chawhan</span>.
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://github.com"
+                href="https://github.com/HardikChawhan"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="GitHub"
+                aria-label="GitHub — Hardik Chawhan"
                 className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface2 border border-border text-secondary hover:text-primary hover:border-border2 transition-colors"
               >
                 <Github size={16} />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://www.linkedin.com/in/hardikchawhan/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Twitter / X"
+                aria-label="LinkedIn — Hardik Chawhan"
                 className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface2 border border-border text-secondary hover:text-primary hover:border-border2 transition-colors"
               >
-                <Twitter size={16} />
+                <Linkedin size={16} />
+              </a>
+              <a
+                href="mailto:hardik.chawhan20@gmail.com"
+                aria-label="Email — Hardik Chawhan"
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface2 border border-border text-secondary hover:text-primary hover:border-border2 transition-colors"
+              >
+                <Mail size={16} />
               </a>
             </div>
           </div>
@@ -130,12 +137,12 @@ function Footer() {
         {/* Bottom bar */}
         <div className="py-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted">
-            © {currentYear} SocialLens. All rights reserved.
+            © {currentYear} SocialLens. Developed by <span className="text-primary font-medium">Hardik Chawhan</span>.
           </p>
           <p className="text-xs text-muted flex items-center gap-1.5">
             Built with{' '}
             <Heart size={10} className="text-error fill-error" aria-hidden="true" />{' '}
-            using React 19 &amp; Flask
+            using React 19 &amp; Express
           </p>
         </div>
       </div>
