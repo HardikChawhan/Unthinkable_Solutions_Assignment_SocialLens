@@ -1,0 +1,463 @@
+import { useCallback } from 'react'
+import { motion } from 'framer-motion'
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts'
+import {
+  Download,
+  Copy,
+  CheckCircle2,
+  XCircle,
+  MessageSquare,
+  BookOpen,
+  Hash,
+  Target,
+  Zap,
+  Eye,
+  Clock,
+  Type,
+  AlignLeft,
+  TrendingUp,
+  Award,
+} from 'lucide-react'
+import clsx from 'clsx'
+import ScoreRing from './ScoreRing'
+import MetricCard from './MetricCard'
+import SuggestionCard from './SuggestionCard'
+import ImprovedVersion from './ImprovedVersion'
+import Badge from '../ui/Badge'
+import Button from '../ui/Button'
+import { staggerContainer, fadeUp, fadeIn } from '../../animations/variants'
+import {
+  formatWordCount,
+  formatCharCount,
+  formatReadingTime,
+  formatSentiment,
+  formatScore,
+  getScoreColor,
+} from '../../utils/formatters'
+import { toast } from '../ui/Toast'
+
+const CustomRadarTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface2 border border-border rounded-lg px-3 py-2 shadow-card-elevated">
+        <p className="text-xs text-secondary">{payload[0]?.name}</p>
+        <p className="text-sm font-bold text-primary">{Math.round(payload[0]?.value)}/100</p>
+      </div>
+    )
+  }
+  return null
+}
+
+function ScoreBar({ label, score, icon: Icon, color = '#6366F1' }) {
+  const pct = Math.min(100, Math.max(0, score || 0))
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5 text-secondary">
+          {Icon && <Icon size={12} aria-hidden="true" />}
+          <span>{label}</span>
+        </div>
+        <span className="font-semibold tabular-nums" style={{ color }}>
+          {Math.round(pct)}
+        </span>
+      </div>
+      <div className="h-1.5 bg-surface2 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{ backgroundColor: color }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function AnalysisReport({ analysis, extractedText, fileMetadata }) {
+  if (!analysis) return null
+
+  const {
+    overall_score,
+    grade,
+    platform,
+    scores = {},
+    strengths = [],
+    weaknesses = [],
+    suggestions = [],
+    sentiment,
+    improved_version,
+    word_count,
+    char_count,
+    reading_time,
+  } = analysis
+
+  const wordCount = word_count ?? formatWordCount(extractedText)
+  const charCount = char_count ?? formatCharCount(extractedText)
+  const readingTime = reading_time ?? formatReadingTime(extractedText)
+  const sentimentData = formatSentiment(sentiment?.score ?? sentiment)
+
+  const radarData = [
+    { subject: 'Engagement', A: scores.engagement ?? 0, fullMark: 100 },
+    { subject: 'Readability', A: scores.readability ?? 0, fullMark: 100 },
+    { subject: 'Hook', A: scores.hook ?? 0, fullMark: 100 },
+    { subject: 'CTA', A: scores.cta ?? 0, fullMark: 100 },
+    { subject: 'Hashtag', A: scores.hashtag ?? 0, fullMark: 100 },
+    { subject: 'Clarity', A: scores.clarity ?? 0, fullMark: 100 },
+  ]
+
+  const handleCopyText = useCallback(async () => {
+    if (!extractedText) return
+    try {
+      await navigator.clipboard.writeText(extractedText)
+      toast.success('Extracted text copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy text.')
+    }
+  }, [extractedText])
+
+  const handleDownloadReport = useCallback(() => {
+    const sep = '─'.repeat(60)
+    const lines = [
+      'SOCIALLENS ANALYSIS REPORT',
+      sep,
+      `Generated: ${new Date().toLocaleString()}`,
+      fileMetadata?.filename ? `File: ${fileMetadata.filename}` : '',
+      '',
+      '=== OVERALL SCORE ===',
+      `Score: ${Math.round(overall_score ?? 0)}/100  Grade: ${grade ?? 'N/A'}`,
+      platform ? `Platform: ${platform}` : '',
+      '',
+      '=== QUICK STATS ===',
+      `Words: ${wordCount}`,
+      `Characters: ${charCount}`,
+      `Reading Time: ${readingTime}`,
+      `Sentiment: ${sentimentData.label}`,
+      '',
+      '=== SCORE BREAKDOWN ===',
+      ...Object.entries(scores).map(
+        ([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: ${Math.round(v ?? 0)}/100`
+      ),
+      '',
+      '=== STRENGTHS ===',
+      ...strengths.map((s) => `✓ ${typeof s === 'string' ? s : s.text ?? s}`),
+      '',
+      '=== AREAS FOR IMPROVEMENT ===',
+      ...weaknesses.map((w) => `✗ ${typeof w === 'string' ? w : w.text ?? w}`),
+      '',
+      '=== SUGGESTIONS ===',
+      ...suggestions.map(
+        (s, i) => `${i + 1}. [${s.priority?.toUpperCase()}] ${s.title}\n   ${s.description}`
+      ),
+      '',
+      improved_version
+        ? `=== IMPROVED VERSION ===\n${improved_version}`
+        : '',
+      '',
+      '=== EXTRACTED TEXT ===',
+      extractedText ?? '',
+      '',
+      sep,
+      'Generated by SocialLens — AI Social Media Content Analyzer',
+    ]
+      .filter((l) => l !== undefined)
+      .join('\n')
+
+    const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `sociallens-report-${Date.now()}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Report downloaded!')
+  }, [analysis, extractedText, fileMetadata, wordCount, charCount, readingTime, sentimentData, overall_score, grade, platform, scores, strengths, weaknesses, suggestions, improved_version])
+
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+      aria-label="Analysis report"
+    >
+      {/* ─── 1. Header: Score + Grade + Platform ──────────────────────── */}
+      <motion.div
+        variants={fadeUp}
+        className="bg-surface border border-border rounded-2xl p-6 md:p-8"
+      >
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+          {/* Score ring */}
+          <ScoreRing
+            score={Math.round(overall_score ?? 0)}
+            label="Overall Score"
+            grade={grade}
+            size={130}
+          />
+
+          {/* Metadata */}
+          <div className="flex-1 space-y-4 text-center sm:text-left">
+            <div>
+              <h2 className="text-2xl font-bold text-primary">Content Analysis</h2>
+              <p className="text-secondary mt-1 text-sm">
+                AI-powered scoring across 6 key engagement dimensions
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+              {platform && (
+                <Badge variant="indigo" size="md">
+                  {platform}
+                </Badge>
+              )}
+              {fileMetadata?.filename && (
+                <Badge variant="default" size="md">
+                  {fileMetadata.filename.length > 24
+                    ? fileMetadata.filename.substring(0, 24) + '…'
+                    : fileMetadata.filename}
+                </Badge>
+              )}
+              <Badge
+                variant={
+                  (overall_score ?? 0) >= 80
+                    ? 'success'
+                    : (overall_score ?? 0) >= 60
+                    ? 'warning'
+                    : 'error'
+                }
+                dot
+                size="md"
+              >
+                {(overall_score ?? 0) >= 80
+                  ? 'High Performer'
+                  : (overall_score ?? 0) >= 60
+                  ? 'Average Performer'
+                  : 'Needs Improvement'}
+              </Badge>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Copy size={13} />}
+                onClick={handleCopyText}
+                disabled={!extractedText}
+              >
+                Copy Text
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Download size={13} />}
+                onClick={handleDownloadReport}
+              >
+                Download Report
+              </Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ─── 2. Quick Stats ───────────────────────────────────────────── */}
+      <motion.div variants={fadeUp}>
+        <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">
+          Quick Stats
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <MetricCard
+            label="Word Count"
+            value={wordCount}
+            icon={AlignLeft}
+            bgColor="bg-blue-400/10"
+            color="text-blue-400"
+            subtitle="in extracted text"
+          />
+          <MetricCard
+            label="Characters"
+            value={charCount}
+            icon={Type}
+            bgColor="bg-purple-400/10"
+            color="text-purple-400"
+            subtitle="total characters"
+          />
+          <MetricCard
+            label="Reading Time"
+            value={readingTime}
+            icon={Clock}
+            bgColor="bg-emerald-400/10"
+            color="text-emerald-400"
+            subtitle="estimated"
+          />
+          <MetricCard
+            label="Sentiment"
+            value={sentimentData.label}
+            icon={MessageSquare}
+            bgColor="bg-accent-indigo/10"
+            color="text-accent-indigo"
+            subtitle={sentimentData.emoji}
+          />
+        </div>
+      </motion.div>
+
+      {/* ─── 3. Score Breakdown ───────────────────────────────────────── */}
+      <motion.div
+        variants={fadeUp}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+      >
+        {/* Score bars */}
+        <div className="bg-surface border border-border rounded-xl p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+            <TrendingUp size={15} className="text-accent-indigo" />
+            Score Breakdown
+          </h3>
+          <div className="space-y-3">
+            <ScoreBar label="Engagement" score={scores.engagement} icon={Zap} color="#6366F1" />
+            <ScoreBar label="Readability" score={scores.readability} icon={BookOpen} color="#8B5CF6" />
+            <ScoreBar label="Hook Strength" score={scores.hook} icon={Eye} color="#3B82F6" />
+            <ScoreBar label="Call to Action" score={scores.cta} icon={Target} color="#10B981" />
+            <ScoreBar label="Hashtag Use" score={scores.hashtag} icon={Hash} color="#F59E0B" />
+            <ScoreBar label="Clarity" score={scores.clarity} icon={BookOpen} color="#EC4899" />
+          </div>
+        </div>
+
+        {/* Radar chart */}
+        <div className="bg-surface border border-border rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-primary mb-4 flex items-center gap-2">
+            <Award size={15} className="text-accent-violet" />
+            Radar Overview
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <RadarChart data={radarData} margin={{ top: 0, right: 20, bottom: 0, left: 20 }}>
+              <PolarGrid stroke="#1E1E2E" strokeDasharray="3 3" />
+              <PolarAngleAxis
+                dataKey="subject"
+                tick={{ fill: '#64748B', fontSize: 11, fontFamily: 'Inter' }}
+              />
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 100]}
+                tick={{ fill: '#64748B', fontSize: 9 }}
+                tickCount={4}
+              />
+              <Radar
+                name="Score"
+                dataKey="A"
+                stroke="#6366F1"
+                fill="#6366F1"
+                fillOpacity={0.15}
+                strokeWidth={2}
+              />
+              <Tooltip content={<CustomRadarTooltip />} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+
+      {/* ─── 4. Strengths & Weaknesses ────────────────────────────────── */}
+      {(strengths.length > 0 || weaknesses.length > 0) && (
+        <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Strengths */}
+          {strengths.length > 0 && (
+            <div className="bg-surface border border-border rounded-xl p-5 space-y-3">
+              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-success" />
+                Strengths
+              </h3>
+              <ul className="space-y-2" aria-label="Content strengths">
+                {strengths.map((item, i) => {
+                  const text = typeof item === 'string' ? item : item.text ?? item
+                  return (
+                    <motion.li
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                      className="flex items-start gap-2.5 text-sm text-secondary"
+                    >
+                      <CheckCircle2
+                        size={14}
+                        className="text-success flex-shrink-0 mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <span>{text}</span>
+                    </motion.li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+
+          {/* Weaknesses */}
+          {weaknesses.length > 0 && (
+            <div className="bg-surface border border-border rounded-xl p-5 space-y-3">
+              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+                <XCircle size={15} className="text-error" />
+                Areas for Improvement
+              </h3>
+              <ul className="space-y-2" aria-label="Areas for improvement">
+                {weaknesses.map((item, i) => {
+                  const text = typeof item === 'string' ? item : item.text ?? item
+                  return (
+                    <motion.li
+                      key={i}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                      className="flex items-start gap-2.5 text-sm text-secondary"
+                    >
+                      <XCircle
+                        size={14}
+                        className="text-error flex-shrink-0 mt-0.5"
+                        aria-hidden="true"
+                      />
+                      <span>{text}</span>
+                    </motion.li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* ─── 5. Suggestions ───────────────────────────────────────────── */}
+      {suggestions.length > 0 && (
+        <motion.div variants={fadeUp} className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted uppercase tracking-wider">
+            Actionable Suggestions ({suggestions.length})
+          </h3>
+          <div className="space-y-2">
+            {suggestions.map((suggestion, i) => (
+              <SuggestionCard
+                key={suggestion.id ?? i}
+                suggestion={{ ...suggestion, id: suggestion.id ?? i }}
+              />
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ─── 6. Improved Version ──────────────────────────────────────── */}
+      {improved_version && (
+        <motion.div variants={fadeUp}>
+          <h3 className="text-sm font-semibold text-muted uppercase tracking-wider mb-3">
+            AI-Improved Version
+          </h3>
+          <ImprovedVersion improvedText={improved_version} />
+        </motion.div>
+      )}
+    </motion.div>
+  )
+}
+
+export default AnalysisReport
